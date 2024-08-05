@@ -1,12 +1,12 @@
 from django.shortcuts import redirect, render
-from django.http import HttpResponse
+from django.contrib import messages, auth
 from django.contrib.auth.models import User
-from django.contrib import messages
 from django.contrib.messages import constants
 
 def cadastro(req):
     if req.method == "GET":
         return render(req, 'cadastro.html')
+
     elif req.method == "POST":
         username = req.POST.get('username')
         senha = req.POST.get('senha')
@@ -35,4 +35,21 @@ def cadastro(req):
             password=senha
         )
 
+        return redirect('/usuarios/logar')
+
+def logar(req):
+    if req.method == "GET":
+        return render(req, 'logar.html')
+
+    elif req.method == "POST":
+        username = req.POST.get('username')
+        senha = req.POST.get('senha')
+
+        user = auth.authenticate(req, username=username, password=senha)
+
+        if user:
+            auth.login(req, user)
+            return redirect('/empresarios/cadastrar_empresa')
+
+        messages.add_message(req, constants.ERROR, 'Usuário ou senha inválidos')
         return redirect('/usuarios/logar')
