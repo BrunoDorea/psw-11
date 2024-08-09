@@ -37,8 +37,27 @@ def sugestao(req):
 def ver_empresa(req, id):
     empresa = Empresas.objects.get(id=id)
     documentos = Documento.objects.filter(empresa=empresa)
+
+    proposta_investimentos = PropostaInvestimento.objects.filter(empresa=empresa).filter(status='PA')
+    percentual_vendido = 0
+    for pi in proposta_investimentos:
+        percentual_vendido = percentual_vendido + pi.percentual
+
+    limiar = (80 * empresa.percentual_equity) / 100
+    concretizado = False
+    if percentual_vendido >= limiar:
+        concretizado = True
+
+    percentual_disponivel = empresa.percentual_equity - percentual_vendido
+
     # TODO: listar as métricas dinamicamente
-    return render(req, 'ver_empresa.html', {'empresa': empresa, 'documentos': documentos})
+    return render(req, 'ver_empresa.html', {
+        'empresa': empresa,
+        'documentos': documentos,
+        'percentual_vendido': int(percentual_vendido),
+        'concretizado': concretizado,
+        'percentual_disponivel': percentual_disponivel
+    })
 
 def realizar_proposta(req, id):
     valor = req.POST.get('valor')
