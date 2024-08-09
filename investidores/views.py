@@ -1,6 +1,9 @@
 from django.shortcuts import redirect, render
+from django.contrib import messages
+from django.contrib.messages import constants
 
 from empresarios.models import Empresas, Documento
+from .models import PropostaInvestimento
 
 def sugestao(req):
     if not req.user.is_authenticated:
@@ -19,7 +22,7 @@ def sugestao(req):
             empresas = Empresas.objects.filter(tempo_existencia='+5').filter(estagio="E")
         elif tipo == 'D':
             empresas = Empresas.objects.filter(tempo_existencia__in=['-6', '+6', '+1']).exclude(estagio="E")
-        
+        # TODO: Tipo genérico
         empresas = empresas.filter(area__in=area)
 
         empresas_selecionadas = []
@@ -33,4 +36,36 @@ def sugestao(req):
 def ver_empresa(req, id):
     empresa = Empresas.objects.get(id=id)
     documentos = Documento.objects.filter(empresa=empresa)
+    # TODO: listar as métricas dinamicamente
     return render(req, 'ver_empresa.html', {'empresa': empresa, 'documentos': documentos})
+
+def realizar_proposta(request, id):
+    valor = request.POST.get('valor')
+    percentual = request.POST.get('percentual')
+    empresa = Empresas.objects.get(id=id)
+
+    propostas_aceitas = PropostaInvestimento.objects.filter(empresa=empresa).filter(status='PA')
+    total = 0
+
+    for pa in propostas_aceitas:
+        total = total + pa.percentual
+
+    if total + float(percentual)  > empresa.percentual_equity:
+        messages.add_message(request, constants.WARNING, 'O percentual solicitado ultrapassa o percentual máximo.')
+        return redirect(f'/investidores/ver_empresa/{id}')
+
+    valuation = (100 * int(valor)) / int(percentual)
+
+    if valuation < (int(empresa.valuation) / 2):
+        messages.add_message(request, constants.WARNING, f'Seu valuation proposto foi R${valuation} e deve ser no mínimo R${empresa.valuation/2}')
+        return redirect(f'/investidores/ver_empresa/{id}')
+
+    pi = PropostaInvestimento(
+        valor=valor,
+        percentual=percentual,
+        empresa=empresa,
+        investidor=request.user,
+    )
+    pi.save()
+    messages.add_message(request, constants.SUCCESS, f'Proposta enviada com sucesso')
+    return redirect(f'/investidores/assinar_contrato/{pi.id}')

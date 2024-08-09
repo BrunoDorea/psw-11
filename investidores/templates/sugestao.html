@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
+{% block 'title' %}{{empresa.nome}}{% endblock 'title' %}
 {% block 'head' %}
-
-<link rel="stylesheet" href="{% static 'empresarios/css/listar_empresas.css' %}">
-<link rel="stylesheet" href="{% static 'empresarios/css/empresa.css' %}">
-<link rel="stylesheet" href="{% static 'usuarios/css/usuarios.css' %}">
-<link rel="stylesheet" href="{% static 'investidores/css/investidores.css' %}">
-
+    <link rel="stylesheet" href="{% static 'empresarios/css/listar_empresas.css' %}">
+    <link rel="stylesheet" href="{% static 'empresarios/css/empresa.css' %}">
+    <link rel="stylesheet" href="{% static 'usuarios/css/usuarios.css' %}">
+    <link rel="stylesheet" href="{% static 'investidores/css/investidores.css' %}">
 {% endblock 'head' %}
 
 
