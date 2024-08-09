@@ -71,5 +71,7 @@ def listar_empresas(req):
         empresas = Empresas.objects.filter(user=req.user)
         return render(req, 'listar_empresas.html', {'empresas': empresas})
     
-
-    
+def empresa(req, id):
+    empresa = Empresas.objects.get(id = id)
+    if req.method == "GET":
+        return render(req, 'empresa.html', {'empresa': empresa})
