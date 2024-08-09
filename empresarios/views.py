@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.contrib.messages import constants
 
-from .models import Empresas
+from .models import Empresas, Documento
 
 def cadastrar_empresa(req):
     # print(req.user.is_authenticated)
@@ -73,5 +73,39 @@ def listar_empresas(req):
     
 def empresa(req, id):
     empresa = Empresas.objects.get(id = id)
+    
+    if empresa.user != req.user:
+        messages.add_message(req, constants.ERROR, "Essa empresa não é de sua responsabilidade")
+        return redirect(f'/empresarios/listar_empresas/')
+    
     if req.method == "GET":
-        return render(req, 'empresa.html', {'empresa': empresa})
+        documentos = Documento.objects.filter(empresa=empresa)
+        return render(req, 'empresa.html', {'empresa': empresa, 'documentos': documentos})
+    
+def add_doc(req, id):
+    empresa = Empresas.objects.get(id=id)
+    titulo = req.POST.get('titulo')
+    arquivo = req.FILES.get('arquivo')
+    extensao = arquivo.name.split('.')
+
+    if empresa.user != req.user:
+        messages.add_message(req, constants.ERROR, "Essa empresa não é de sua responsabilidade")
+        return redirect(f'/empresarios/listar_empresas/')
+
+    if extensao[1] != 'pdf':
+        messages.add_message(req, constants.ERROR, "Envie apenas PDF's")
+        return redirect(f'/empresarios/empresa/{id}')
+    
+    if not arquivo:
+        messages.add_message(req, constants.ERROR, "Envie um arquivo")
+        return redirect(f'/empresarios/empresa/{id}')
+        
+    documento = Documento(
+        empresa=empresa,
+        titulo=titulo,
+        arquivo=arquivo
+    )
+
+    documento.save()
+    messages.add_message(req, constants.SUCCESS, "Arquivo cadastrado com sucesso")
+    return redirect(f'/empresarios/empresa/{id}')
