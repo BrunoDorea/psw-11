@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.contrib.messages import constants
 
+from investidores.models import PropostaInvestimento
 from .models import Empresas, Documento, Metricas
 
 def cadastrar_empresa(req):
@@ -80,7 +81,25 @@ def empresa(req, id):
     
     if req.method == "GET":
         documentos = Documento.objects.filter(empresa=empresa)
-        return render(req, 'empresa.html', {'empresa': empresa, 'documentos': documentos})
+        proposta_investimentos = PropostaInvestimento.objects.filter(empresa=empresa)
+
+        percentual_vendido = 0
+        for pi in proposta_investimentos:
+            if pi.status == 'PA':
+                percentual_vendido = percentual_vendido + pi.percentual
+
+        total_captado = sum(proposta_investimentos.filter(status='PA').values_list('valor', flat=True))
+        valuation_atual = (100 * float(total_captado)) / float(percentual_vendido) if percentual_vendido != 0 else 0
+
+        proposta_investimentos_enviada = proposta_investimentos.filter(status='PE')
+        return render(req, 'empresa.html', {
+            'empresa': empresa,
+            'documentos': documentos,
+            'proposta_investimentos_enviada': proposta_investimentos_enviada,
+            'percentual_vendido': int(percentual_vendido),
+            'total_captado': total_captado,
+            'valuation_atual': valuation_atual
+        })
     
 def add_doc(req, id):
     empresa = Empresas.objects.get(id=id)
@@ -120,10 +139,10 @@ def excluir_dc(req, id):
     messages.add_message(req, constants.SUCCESS, "Documento excluído com sucesso")
     return redirect(f'/empresarios/empresa/{documento.empresa.id}')
 
-def add_metrica(request, id):
+def add_metrica(req, id):
     empresa = Empresas.objects.get(id=id)
-    titulo = request.POST.get('titulo')
-    valor = request.POST.get('valor')
+    titulo = req.POST.get('titulo')
+    valor = req.POST.get('valor')
     
     metrica = Metricas(
         empresa=empresa,
@@ -132,5 +151,22 @@ def add_metrica(request, id):
     )
     metrica.save()
 
-    messages.add_message(request, constants.SUCCESS, "Métrica cadastrada com sucesso")
+    messages.add_message(req, constants.SUCCESS, "Métrica cadastrada com sucesso")
     return redirect(f'/empresarios/empresa/{empresa.id}')
+
+def gerenciar_proposta(req, id):
+    if not req.user.is_authenticated:
+        return redirect('/usuarios/logar')
+    
+    acao = req.GET.get('acao')
+    pi = PropostaInvestimento.objects.get(id=id)
+
+    if acao == 'aceitar':
+        messages.add_message(req, constants.SUCCESS, 'Proposta aceita')
+        pi.status = 'PA'
+    elif acao == 'recusar':
+        messages.add_message(req, constants.WARNING, 'Proposta recusada')
+        pi.status = 'PR'
+
+    pi.save()
+    return redirect(f'/empresarios/empresa/{pi.empresa.id}')
