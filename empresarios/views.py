@@ -5,8 +5,11 @@ from django.contrib.messages import constants
 from .models import Empresas
 
 def cadastrar_empresa(req):
-    if req.method == "GET":
+    # print(req.user.is_authenticated)
+    if not req.user.is_authenticated:
+        return redirect('/usuarios/login')
 
+    if req.method == "GET":
         return render(
             req,
             'cadastrar_empresa.html',
@@ -58,3 +61,15 @@ def cadastrar_empresa(req):
             
     messages.add_message(req, constants.SUCCESS, 'Empresa criada com sucesso.')
     return redirect('/empresarios/cadastrar_empresa')
+
+def listar_empresas(req):
+    if not req.user.is_authenticated:
+        return redirect('/usuarios/login')
+    
+    if req.method == "GET":
+        # TODO: Realizar os filtros das empresas
+        empresas = Empresas.objects.filter(user=req.user)
+        return render(req, 'listar_empresas.html', {'empresas': empresas})
+    
+
+    
