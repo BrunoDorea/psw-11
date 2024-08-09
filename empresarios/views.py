@@ -7,7 +7,7 @@ from .models import Empresas, Documento, Metricas
 def cadastrar_empresa(req):
     # print(req.user.is_authenticated)
     if not req.user.is_authenticated:
-        return redirect('/usuarios/login')
+        return redirect('/usuarios/logar')
 
     if req.method == "GET":
         return render(
@@ -64,7 +64,7 @@ def cadastrar_empresa(req):
 
 def listar_empresas(req):
     if not req.user.is_authenticated:
-        return redirect('/usuarios/login')
+        return redirect('/usuarios/logar')
     
     if req.method == "GET":
         # TODO: Realizar os filtros das empresas
