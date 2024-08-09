@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load humanize %}
 {% block 'title' %}{{empresa.nome}}{% endblock 'title' %}
 {% block 'head' %}
     <link rel="stylesheet" href="{% static 'empresarios/css/listar_empresas.css' %}">
@@ -39,7 +40,7 @@
                         <a href="#" class="sub-fonte">Ver investidores</a>
                     </div>
                     <div class="col-md">
-                        <h2 class="titulo2">R$ {{total_captado}} captados</h2>
+                        <h2 class="titulo2">R$ {{total_captado|intcomma}} captados</h2>
                     </div>
                 </div>
                 <hr>
@@ -61,9 +62,9 @@
                     </div>
                     <div class="col-md">
                         <h5>Valuation</h5>
-                        <span class="sub-fonte">Atual: {{valuation_atual}}</span>
+                        <span class="sub-fonte">Atual: {{valuation_atual|intcomma}}</span>
                         <br>
-                        <span class="sub-fonte">Esperado: {{empresa.valuation}}</span>
+                        <span class="sub-fonte">Esperado: {{empresa.valuation|intcomma}}</span>
                     </div>
 
 
@@ -141,7 +142,7 @@
                             <div class="col-md-5" style="text-align: left">
                                 <span class="sub-fonte">{{pi.investidor}}</span>
                                 <br>
-                                <span class="sub-fonte2">R$ {{pi.valor}}</span>
+                                <span class="sub-fonte2">R$ {{pi.valor|intcomma}}</span>
                                 <br>
                                 <span class="sub-fonte2">{{pi.percentual}}%
                                     {% if pi.valuation >= empresa.valuation %}

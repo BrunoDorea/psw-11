@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% load static %}
 {% block 'title' %}{{empresa.nome}}{% endblock 'title' %}
 {% block 'head' %}
@@ -46,7 +47,7 @@
                 <p>{{empresa.descricao}}</p>
                 <div class="col-md">
                     <h5>Valuation esperado</h5>
-                    <span class="sub-fonte">Esperado: {{empresa.valuation}}</span>
+                    <span class="sub-fonte">Esperado: {{empresa.valuation|intcomma}}</span>
                     <br>
                     <br>
                     <h5>Percentual</h5>
